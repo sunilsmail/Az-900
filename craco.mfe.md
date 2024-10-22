@@ -142,3 +142,190 @@ module.exports = {
 ### Conclusion
 
 The `craco.config.js` file is essential for setting up a micro-frontend architecture using **Single-SPA** with a Create React App (CRA) setup. The modifications ensure that the micro-frontend can be packaged as a SystemJS module, share dependencies, and be loaded into a shell application while maintaining a clean and manageable build process.
+
+
+
+##############
+
+
+To configure the **host** or **shell** application to consume the **micro-frontend** (MFE) that you exposed using **Single-SPA** and **CRACO**, you'll need to set up the shell application to load, register, and mount the micro-frontend. Below is a **detailed guide** that explains how to configure the shell application to load the micro-frontends properly.
+
+### Steps to Configure the Shell Application
+
+---
+
+### 1. **Set Up the Shell Application**
+
+Before configuring the shell application to consume the micro-frontend, you need to initialize a new **Single-SPA** project or use an existing project.
+
+1. If you don’t already have a shell application, create one:
+
+   ```bash
+   npx create-single-spa
+   ```
+
+2. Follow the prompts to create a **root config** (which will act as your shell or host) for multiple micro-frontends. Choose the framework that matches your shell application (e.g., React).
+
+3. After setting up the basic shell application, you should have a folder structure that includes a root configuration file for Single-SPA and a basic React or Vue/Angular app depending on your choice.
+
+---
+
+### 2. **Install Single-SPA Packages**
+
+Install the necessary **Single-SPA** packages in your shell application if they are not already installed:
+
+```bash
+npm install single-spa single-spa-react systemjs
+```
+
+- **`single-spa`**: The core library that provides functionality for managing micro-frontends.
+- **`single-spa-react`**: If your micro-frontends are React-based, this library helps to wrap React components in Single-SPA lifecycle methods.
+- **`systemjs`**: A module loader that allows dynamic loading of your micro-frontend applications.
+
+---
+
+### 3. **Register the Micro-Frontend in the Shell Application**
+
+To consume the micro-frontends, you need to register them with the shell application using the **Single-SPA** API. This is done by importing and registering each micro-frontend via **SystemJS** or using a module federation.
+
+#### 1. Modify `root-config.js` or Your Entry Point:
+
+In your root configuration or entry point (`src/index.js` or `src/root-config.js`), you'll use the `registerApplication` API from Single-SPA to register the micro-frontend.
+
+Here’s an example of how to register the micro-frontend you exposed:
+
+```javascript
+import { registerApplication, start } from 'single-spa';
+
+// Register the micro frontend
+registerApplication({
+  name: '@my-org/my-microfrontend', // Unique name for the micro-frontend
+  app: () => System.import('https://cdn.myapp.com/micro-frontend-name.js'), // URL of the micro-frontend's JS file from the build process or CDN
+  activeWhen: ['/'], // Condition to load the micro-frontend (based on URL path)
+  customProps: { someProp: 'value' }, // (Optional) Props to pass to the micro-frontend
+});
+
+// Start Single-SPA
+start();
+```
+
+##### Explanation of the Code:
+
+- **`registerApplication`**: Registers a micro-frontend within the shell application.
+- **`name`**: A unique name that identifies the micro-frontend. This should be consistent with the micro-frontend's name in its own build.
+- **`app`**: This is a **promise** that returns the module to load for the micro-frontend. It uses **SystemJS** to dynamically load the bundle. You specify the URL where the micro-frontend is hosted, either on a CDN or server.
+- **`activeWhen`**: Specifies the conditions (usually routes) under which the micro-frontend should be mounted. In this example, the micro-frontend is mounted whenever the URL path starts with `/`. You can modify this condition to load the micro-frontend for specific routes (e.g., `/dashboard`, `/user`).
+- **`customProps`**: (Optional) You can pass custom properties to the micro-frontend as props. This is useful when you need to share data between the shell and the micro-frontend.
+
+#### 2. Handling Multiple Micro-Frontends
+
+If you have more than one micro-frontend, repeat the above `registerApplication` step for each micro-frontend, specifying their unique URL, name, and routes.
+
+```javascript
+registerApplication({
+  name: '@my-org/microfrontend1',
+  app: () => System.import('https://cdn.myapp.com/microfrontend1.js'),
+  activeWhen: ['/mf1'], // Loads when URL contains '/mf1'
+});
+
+registerApplication({
+  name: '@my-org/microfrontend2',
+  app: () => System.import('https://cdn.myapp.com/microfrontend2.js'),
+  activeWhen: ['/mf2'], // Loads when URL contains '/mf2'
+});
+```
+
+Now, when the user navigates to `/mf1`, the `microfrontend1` will load, and when they navigate to `/mf2`, `microfrontend2` will load.
+
+---
+
+### 4. **Setup Shared Dependencies**
+
+It’s important to ensure that common libraries (like React, ReactDOM) are shared between the shell and micro-frontends to prevent loading multiple instances of the same libraries. 
+
+In the **root config** or shell application, you should load shared dependencies like **React** and **ReactDOM** first before loading the micro-frontends.
+
+```javascript
+// Load shared dependencies like React
+SystemJS.config({
+  map: {
+    react: 'https://cdn.jsdelivr.net/npm/react@17/umd/react.production.min.js',
+    'react-dom': 'https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.production.min.js',
+  },
+});
+```
+
+This ensures that when the micro-frontends declare `react` and `react-dom` as **externals** in their builds (like we did in the `craco.config.js`), they use the same instance of these libraries loaded by the shell application.
+
+---
+
+### 5. **Configure Routing in Shell Application**
+
+Since Single-SPA handles the loading and unloading of micro-frontends based on routes, it’s essential to ensure that the routing works properly in the shell.
+
+Make sure you define routes in the shell application using `activeWhen` for each micro-frontend.
+
+For example, in `registerApplication`:
+- Micro-frontend 1 might be loaded when the path is `/app1`.
+- Micro-frontend 2 might load when the path is `/app2`.
+
+```javascript
+// Shell application
+registerApplication({
+  name: '@org/micro-frontend-1',
+  app: () => System.import('https://cdn.example.com/micro-frontend-1.js'),
+  activeWhen: (location) => location.pathname.startsWith('/app1'),
+});
+
+registerApplication({
+  name: '@org/micro-frontend-2',
+  app: () => System.import('https://cdn.example.com/micro-frontend-2.js'),
+  activeWhen: (location) => location.pathname.startsWith('/app2'),
+});
+```
+
+The `activeWhen` property can use different routing mechanisms. It can be a string (e.g., `/app1`), or you can pass a function that returns `true` or `false` based on the current route (like in the above example).
+
+---
+
+### 6. **Start the Shell Application**
+
+Once you have registered your micro-frontends, you can start the shell application using:
+
+```javascript
+start();
+```
+
+This method bootstraps the Single-SPA framework and loads the appropriate micro-frontends based on the route.
+
+---
+
+### 7. **Development Workflow for Shell and Micro-Frontends**
+
+During development, you can run both the shell and the micro-frontend applications in parallel. You’ll need to:
+
+1. Run the shell application locally:
+   
+   ```bash
+   npm start
+   ```
+
+2. Run the micro-frontend application(s) locally, ensuring they are exposed via `craco` and served on different ports.
+
+3. In the shell, you can point to the local development URLs instead of CDN or production URLs for the micro-frontends:
+
+   ```javascript
+   registerApplication({
+     name: '@my-org/my-microfrontend',
+     app: () => System.import('http://localhost:3001/static/js/main.js'), // Point to local development server
+     activeWhen: ['/'],
+   });
+   ```
+
+This way, you can easily develop both the shell and micro-frontends in tandem.
+
+---
+
+### Conclusion
+
+The shell or host application in a **Single-SPA** architecture is responsible for loading and managing micro-frontends dynamically. The `craco.config.js` in the micro-frontend ensures that the application is properly bundled as a **SystemJS** module. On the other hand, the shell application uses **Single-SPA’s** `registerApplication` to import, load, and mount these micro-frontends based on the current route or condition. The proper configuration of shared dependencies, routing, and CORS is essential for smooth integration.
