@@ -1,0 +1,47 @@
+Step 1: Understand the Exam Scope
+The AI-204 exam focuses on designing and implementing AI solutions using Azure AI services. Key domains include:
+
+Natural Language Processing (NLP) – Azure AI Language, LUIS, Speech Services
+
+Computer Vision – Custom Vision, Face API, OCR
+
+Conversational AI – Azure Bot Service, QnA Maker
+
+Responsible AI – Fairness, Transparency, Explainability
+
+Machine Learning – Azure ML, Custom AI Models
+
+Integration & Deployment – Azure Functions, Logic Apps, Containers
+
+Step 2: Build Core Azure Knowledge
+Get familiar with Azure fundamentals (AI-900 is a good start but optional).
+
+Learn about Azure services such as Storage, Security, and Networking.
+
+Step 3: Learn Azure AI Services
+Azure Cognitive Services (Vision, Speech, Language, Decision APIs)
+
+Azure Machine Learning (Azure ML) – Training, Deployment, Pipelines
+
+Azure Bot Service – Developing and integrating chatbots
+
+
+Step 4: Hands-on Practice
+Use Azure AI Studio to experiment with Cognitive Services.
+
+Work on Azure Machine Learning Notebooks for training models.
+
+Deploy AI models using Azure App Services or Containers.
+
+
+Step 5: Explore Microsoft Learning Paths & Documentation
+Microsoft Learn: AI-204 Learning Path
+
+Docs & Tutorials: Azure Cognitive Services, AI Models
+
+Practice Labs: Microsoft Hands-on Labs
+
+Step 6: Take Practice Tests
+Use Microsoft Official Practice Tests or MeasureUp.
+
+Identify weak areas and revise accordingly.
